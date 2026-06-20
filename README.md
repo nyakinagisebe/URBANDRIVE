@@ -1,6 +1,6 @@
 # URBANDRIVE
 Final year project
-# Project Setup & Execution Guide
+# Project Setup
 
 This repository contains the codebase for the project. Due to GitHub's file size limitations, certain large datasets and configuration files could not be pushed directly to the remote repository. 
 
