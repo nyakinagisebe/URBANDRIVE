@@ -1,0 +1,2 @@
+APP/module1/investment_infrastructure.json filter=lfs diff=lfs merge=lfs -text
+APP/module1/map.osm filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reports - URBANDRIVE KENYA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .logo-font { font-family: 'Space Grotesk', sans-serif; }
+        
+        .nav-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; margin: 4px 0;
+            border-radius: 12px; font-weight: 500;
+            transition: all 0.2s;
+        }
+        .nav-link:hover { background-color: #1f5c45; }
+        .nav-active {
+            background-color: #f8fafc;
+            color: #166534 !important;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+
+    <div id="sidebar-placeholder"></div>
+
+    <div class="flex-1 ml-64">
+        <div class="bg-white border-b px-8 py-5">
+            <h1 class="text-3xl font-semibold text-gray-900">My Reports</h1>
+            <p class="text-gray-600">All housing analysis reports you've generated</p>
+        </div>
+
+        <div class="p-8">
+            <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="px-6 py-4 text-left">Report Title</th>
+                            <th class="px-6 py-4 text-left">Date Generated</th>
+                            <th class="px-6 py-4 text-left">Region</th>
+                            <th class="px-6 py-4 text-left">Total Investment</th>
+                            <th class="px-6 py-4 text-center">Verdict</th>
+                            <th class="px-6 py-4 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportsTable" class="divide-y text-gray-700">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="noReports" class="hidden text-center py-20">
+                <i class="fa-solid fa-folder-open text-6xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500 text-lg">No reports yet</p>
+                <p class="text-gray-400 mt-2">Start a new analysis to generate your first report</p>
+                <button onclick="startNewAnalysis()" 
+                        class="mt-6 bg-emerald-700 text-white px-6 py-3 rounded-2xl hover:bg-emerald-800">
+                    Start New Analysis
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load Sidebar
+        function includeSidebar() {
+            fetch('sidebar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('sidebar-placeholder').innerHTML = data;
+                    document.getElementById('nav-reports').classList.add('nav-active');
+                })
+                .catch(err => console.error("Sidebar loading failed:", err));
+        }
+
+        // Fetch Real Reports from Backend
+        async function loadReports() {
+            const userId = localStorage.getItem("user_id");
+            
+            if (!userId) {
+                alert("Please log in again. User ID is missing.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/get-reports/${userId}`);
+                const result = await response.json();
+
+                const tbody = document.getElementById('reportsTable');
+                tbody.innerHTML = '';
+
+                if (!result.success || result.reports.length === 0) {
+                    document.getElementById('noReports').classList.remove('hidden');
+                    return;
+                }
+
+                document.getElementById('noReports').classList.add('hidden');
+
+                result.reports.forEach(report => {
+                    const date = new Date().toLocaleDateString('en-GB', { 
+                        year: 'numeric', month: 'short', day: 'numeric' 
+                    });
+
+                    const row = `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-5 font-medium">${report.report_title}</td>
+                            <td class="px-6 py-5 text-gray-600">${date}</td>
+                            <td class="px-6 py-5 text-gray-600">${report.region}</td>
+                            <td class="px-6 py-5 font-medium">
+                                KSh ${Number(report.total_investment).toLocaleString()}
+                            </td>
+                            <td class="px-6 py-5 text-center">
+                                <span class="px-3 py-1 rounded-full text-sm font-medium
+                                    ${report.verdict === 'GO' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                                    ${report.verdict}
+                                </span>
+                            </td>
+                            <td class="px-6 py-5 text-center">
+                                <button onclick="viewReport(${report.report_id})" 
+                                        class="text-emerald-600 hover:text-emerald-700 mx-2">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button onclick="downloadReport(${report.report_id})" 
+                                        class="text-blue-600 hover:text-blue-700 mx-2">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('noReports').classList.remove('hidden');
+                document.getElementById('noReports').innerHTML = `
+                    <p class="text-red-500">Error loading reports. Make sure backend is running.</p>
+                `;
+            }
+        }
+
+        function viewReport(id) {
+            alert(`Opening detailed view for Report ID: ${id} (Feature coming soon)`);
+        }
+
+        function downloadReport(id) {
+            alert(`Downloading Report ID: ${id}...`);
+        }
+
+        function startNewAnalysis() {
+            window.open("http://localhost:8501", "_blank");
+        }
+
+        function logout() {
+            if (confirm("Are you sure you want to log out?")) {
+                localStorage.clear();
+                window.location.href = "login.html";
+            }
+        }
+
+        // Initialize Page
+        window.onload = function() {
+            includeSidebar();
+            loadReports();
+        };
+    </script>
+</body>
+</html>

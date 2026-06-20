@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - URBANDRIVE KENYA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .logo-font { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Navigation styling for the injected sidebar */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            margin: 4px 0;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-active {
+            background-color: #f8fafc !important;
+            color: #166534 !important;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+
+    <div id="sidebar-placeholder"></div>
+
+    <div class="flex-1 ml-64">
+        <div class="bg-white border-b border-gray-200 px-8 py-5 flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-semibold text-gray-900">Account Settings</h1>
+                <p class="text-gray-600">Manage your profile and security preferences</p>
+            </div>
+        </div>
+
+        <div class="p-8">
+            <div class="max-w-2xl bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+                <h2 class="text-xl font-semibold mb-6">Profile Information</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Username / Display Name</label>
+                        <input id="username" type="text" placeholder="Enter your name" 
+                               class="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input id="userEmail" type="email" readonly 
+                               class="w-full px-4 py-3 border border-gray-200 rounded-2xl bg-gray-50 text-gray-500 cursor-not-allowed">
+                        <p class="text-xs text-gray-400 mt-2 italic">Your email is managed by your organization and cannot be changed.</p>
+                    </div>
+
+                    <div class="pt-8 border-t border-gray-100">
+                        <h3 class="text-lg font-semibold mb-4">Security</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                                <input id="newPassword" type="password" placeholder="••••••••" 
+                                       class="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                                <input id="confirmPassword" type="password" placeholder="••••••••" 
+                                       class="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 flex gap-4">
+                        <button onclick="saveSettings()" 
+                                class="bg-emerald-700 hover:bg-emerald-800 text-white px-8 py-3 rounded-2xl font-semibold transition-all shadow-lg shadow-emerald-900/10">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-12 pt-8 border-t border-red-50/50">
+                    <h3 class="text-red-600 font-bold text-sm uppercase tracking-wider mb-4">Danger Zone</h3>
+                    <div class="bg-red-50 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-red-900 font-semibold text-sm">Delete Account</p>
+                            <p class="text-red-700 text-xs">This will permanently remove all your analysis data.</p>
+                        </div>
+                        <button onclick="deleteAccount()" 
+                                class="bg-white text-red-600 border border-red-200 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-600 hover:text-white transition-all">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Fetch and inject the sidebar
+        function includeSidebar() {
+            fetch('sidebar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('sidebar-placeholder').innerHTML = data;
+                    // Apply active state specifically to the Settings link
+                    const settingsLink = document.getElementById('nav-settings');
+                    if (settingsLink) settingsLink.classList.add('nav-active');
+                })
+                .catch(err => console.error("Error loading sidebar:", err));
+        }
+
+        // 2. Load user info from localStorage
+        function loadUserProfile() {
+            const email = localStorage.getItem('email') || "user@urbandrive.co.ke";
+            const username = localStorage.getItem('username') || email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+            
+            document.getElementById('userEmail').value = email;
+            document.getElementById('username').value = username;
+        }
+
+        // 3. Save Logic
+        function saveSettings() {
+            const newName = document.getElementById('username').value.trim();
+            const pass1 = document.getElementById('newPassword').value;
+            const pass2 = document.getElementById('confirmPassword').value;
+
+            if (!newName) return alert("Username is required");
+            if (pass1 && pass1 !== pass2) return alert("Passwords do not match");
+
+            // Update local storage for immediate UI feedback
+            localStorage.setItem('username', newName);
+            alert("✅ Settings updated successfully!");
+            
+            document.getElementById('newPassword').value = "";
+            document.getElementById('confirmPassword').value = "";
+        }
+
+        function deleteAccount() {
+            if (confirm("Permanently delete your account? This cannot be undone.")) {
+                localStorage.clear();
+                window.location.href = "login.html";
+            }
+        }
+
+        function startNewAnalysis() {
+            window.open("http://localhost:8501", "_blank");
+        }
+
+        function logout() {
+            if (confirm("Are you sure you want to log out?")) {
+                localStorage.clear();
+                window.location.href = "login.html";
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            includeSidebar();
+            loadUserProfile();
+        };
+    </script>
+</body>
+</html>

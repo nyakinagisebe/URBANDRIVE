@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News & Trends - URBANDRIVE KENYA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .logo-font { font-family: 'Space Grotesk', sans-serif; }
+        
+        .nav-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; margin: 4px 0;
+            border-radius: 12px; font-weight: 500;
+            transition: all 0.2s;
+        }
+        .nav-link:hover { background-color: #1f5c45; }
+        .nav-active {
+            background-color: #f8fafc;
+            color: #166534 !important;
+            font-weight: 600;
+        }
+        .news-card {
+            transition: all 0.3s ease;
+        }
+        .news-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+
+    <div style="display: none !important;">
+        <a href="https://nation.co.ke" data-type="scraper">Nation Media</a>
+        <a href="https://standardmedia.co.ke" data-type="scraper">The Standard</a>
+        <div data-type="api_key" data-name="Currents API Key">g7bEAFPzP_L_wc09t915mKqBUZdU3qKZpuFtHQCfNtTTHcJC</div>
+        <div data-type="api_key" data-name="World News API Key">d2c53b6083c24e15abe375b93dc1db29</div>
+        </div>
+
+    <div id="sidebar-placeholder"></div>
+
+    <div class="flex-1 ml-64">
+        <div class="bg-white border-b px-8 py-5 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-semibold text-gray-900">News & Trends</h1>
+                <p class="text-gray-600">Real Estate, Construction, Housing & Market Insights in Kenya</p>
+            </div>
+            <button onclick="fetchAllNews()" 
+                    class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-colors flex items-center gap-2">
+                <i class="fa-solid fa-rotate"></i> Refresh News
+            </button>
+        </div>
+
+        <div class="p-8">
+            <div id="news-container" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Loader
+        function includeSidebar() {
+            fetch('sidebar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('sidebar-placeholder').innerHTML = data;
+                    const newsLink = document.getElementById('nav-news');
+                    if (newsLink) newsLink.classList.add('nav-active');
+                })
+                .catch(err => console.error("Sidebar loading failed:", err));
+        }
+
+        // Helper parameters to extract saved keys live from document container markup
+        function getInlineKeyByName(name) {
+            const el = document.querySelector(`[data-type="api_key"][data-name="${name}"]`);
+            return el ? el.textContent.trim() : '';
+        }
+
+        // Fetch from Currents API
+        async function fetchCurrents() {
+            const apiKey = getInlineKeyByName('Currents API Key') || 'g7bEAFPzP_L_wc09t915mKqBUZdU3qKZpuFtHQCfNtTTHcJC';
+            const url = `https://api.currentsapi.services/v1/search?keywords=real+estate+OR+construction+OR+housing+OR+building+OR+inflation&country=ke&apiKey=${apiKey}`;
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                return data.news || [];
+            } catch(e) {
+                console.error("Currents API Fetch error:", e);
+                return [];
+            }
+        }
+
+        // Fetch from World News API
+        async function fetchWorldNews() {
+            const apiKey = getInlineKeyByName('World News API Key') || 'd2c53b6083c24e15abe375b93dc1db29';
+            const url = `https://api.worldnewsapi.com/search-news?text=real+estate+OR+construction+OR+housing+OR+building+OR+inflation&source-country=ke&language=en&number=6&api-key=${apiKey}`;
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                return data.news || [];
+            } catch(e) {
+                console.error("World News API Fetch error:", e);
+                return [];
+            }
+        }
+
+        // Main Function - Fetch from both APIs
+        async function fetchAllNews() {
+            const container = document.getElementById('news-container');
+            container.innerHTML = `
+                <div class="col-span-full text-center py-20">
+                    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-emerald-600 mb-4"></i>
+                    <p class="text-gray-500">Fetching latest Kenyan real estate & construction news...</p>
+                </div>`;
+
+            try {
+                const [currentsNews, worldNews] = await Promise.all([
+                    fetchCurrents(),
+                    fetchWorldNews()
+                ]);
+
+                container.innerHTML = '';
+
+                // Combine and take top unique articles
+                let allNews = [...currentsNews, ...worldNews];
+                
+                // Remove duplicates based on title
+                allNews = allNews.filter((v, i, a) => 
+                    a.findIndex(t => t.title === v.title) === i);
+
+                allNews.slice(0, 6).forEach(article => {
+                    const image = article.image || article.urlToImage || 'https://via.placeholder.com/600x340?text=Kenya+Real+Estate';
+                    const date = article.published || article.publishedAt 
+                        ? new Date(article.published || article.publishedAt).toLocaleDateString('en-GB') 
+                        : 'Recent';
+
+                    const card = `
+                        <div class="news-card bg-white rounded-3xl shadow-sm overflow-hidden border border-gray-100 h-full flex flex-col">
+                            <img src="${image}" alt="${article.title}" class="w-full h-52 object-cover">
+                            <div class="p-6 flex-1 flex flex-col">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">
+                                        KENYA
+                                    </span>
+                                    <span class="text-gray-400 text-xs">${date}</span>
+                                </div>
+                                <h3 class="font-bold text-lg leading-tight mb-3 line-clamp-3">${article.title}</h3>
+                                <p class="text-gray-600 text-sm line-clamp-4 mb-auto">${article.description || 'No description available.'}</p>
+                                <a href="${article.url}" target="_blank" class="mt-6 inline-flex items-center text-emerald-600 font-semibold hover:underline">
+                                    Read Full Article 
+                                    <i class="fa-solid fa-arrow-up-right-from-square ml-2 text-sm"></i>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += card;
+                });
+
+                if (allNews.length === 0) {
+                    container.innerHTML = `<div class="col-span-full text-center py-20 text-gray-500">No relevant news found at the moment.</div>`;
+                }
+
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="col-span-full text-center py-20 text-red-500">Failed to load news. Please try again later.</div>`;
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            includeSidebar();
+            fetchAllNews();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URBANDRIVE KENYA - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .logo-font { font-family: 'Space Grotesk', sans-serif; }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            margin: 4px 0;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .nav-link:hover {
+            background-color: #1f5c45;
+        }
+        
+        .nav-active {
+            background-color: #f8fafc;
+            color: #166534 !important;
+            font-weight: 600;
+        }
+        .dash-news-card {
+            transition: all 0.2s ease;
+        }
+        .dash-news-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+
+    <div style="display: none !important;">
+        <div data-type="api_key" data-name="Currents API Key">g7bEAFPzP_L_wc09t915mKqBUZdU3qKZpuFtHQCfNtTTHcJC</div>
+        <div data-type="api_key" data-name="World News API Key">d2c53b6083c24e15abe375b93dc1db29</div>
+        </div>
+
+    <div id="sidebar-placeholder"></div>
+
+    <div class="flex-1 ml-64">
+        <div class="bg-white border-b border-gray-200 px-8 py-5 flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-semibold text-gray-900">Dashboard</h1>
+                <p class="text-gray-600">Welcome back, <span id="welcomeName" class="text-emerald-700 font-medium">User</span></p>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="relative cursor-pointer">
+                    <i class="fa-solid fa-bell text-2xl text-gray-600"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">2</span>
+                </div>
+                <div class="flex items-center gap-3 cursor-pointer" onclick="logout()">
+                    <div id="userAvatar" class="w-9 h-9 bg-emerald-600 rounded-full flex items-center justify-center text-white font-semibold text-lg"></div>
+                    <div>
+                        <p id="userName" class="font-medium text-sm">Loading...</p>
+                        <p class="text-xs text-gray-500">System Member</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8 space-y-8">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium">Your Reports Generated</p>
+                        <p class="text-4xl font-bold text-gray-900 mt-2" id="userReportsCount">0</p>
+                        <p class="text-xs text-emerald-600 font-medium mt-1"><i class="fa-solid fa-circle-check"></i> Connected live</p>
+                    </div>
+                    <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-file-lines text-3xl text-amber-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-8 bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900">Latest News & Trends</h2>
+                            <p class="text-xs text-gray-500">Real-time marketplace feeds from Kenya</p>
+                        </div>
+                        <a href="news2.html" class="text-emerald-600 text-sm font-semibold hover:underline flex items-center gap-1">
+                            View all news <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </a>
+                    </div>
+                    
+                    <div id="dashboard-news-loader" class="space-y-4">
+                        <div class="text-center py-12 text-gray-400">
+                            <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-600 mb-2"></i>
+                            <p class="text-sm">Fetching corporate property bulletins...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 flex flex-col gap-6">
+                    <div class="bg-emerald-900 text-white rounded-3xl p-6 shadow-md flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 bg-emerald-800 rounded-2xl flex items-center justify-center mb-4 border border-emerald-700">
+                                <i class="fa-solid fa-bolt text-xl text-emerald-400"></i>
+                            </div>
+                            <h3 class="font-bold text-xl mb-2">Quick Engine Actions</h3>
+                            <p class="text-sm text-emerald-200 mb-6">Initiate immediate data evaluations, map matrices, or check algorithmic trends across urban clusters instantly.</p>
+                        </div>
+                        <button onclick="startNewAnalysis()" 
+                                class="w-full bg-white text-emerald-900 font-bold py-4 rounded-2xl hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 shadow-sm text-sm">
+                            <i class="fa-solid fa-chart-line"></i> Start New Analysis →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-emerald-600"></i> About URBANDRIVE KENYA
+                    </h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        URBANDRIVE KENYA is a premier, data-driven real estate analytics and forecasting platform. We empower planners, real estate investors, builders, and corporate firms with structural parameters, micro-market data analytics, construction trend calculations, and comprehensive housing valuation projections across Kenya's urban spaces.
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+                        <div class="bg-gray-50 rounded-2xl p-3 border border-gray-100 text-center">
+                            <p class="text-emerald-700 font-bold text-base">Market Insights</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Accurate Trends</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-2xl p-3 border border-gray-100 text-center">
+                            <p class="text-emerald-700 font-bold text-base">AI Analysis</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Automated Models</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-2xl p-3 border border-gray-100 text-center col-span-2 md:col-span-1">
+                            <p class="text-emerald-700 font-bold text-base">Kenya-Focused</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Local Infrastructure</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-headset text-emerald-600"></i> Corporate Help & Contacts
+                        </h3>
+                        <ul class="space-y-3.5 text-sm text-gray-600">
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-location-dot text-gray-400 mt-0.5 w-4 text-center"></i>
+                                <span>Upper Hill, Nairobi, Kenya</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fa-solid fa-envelope text-gray-400 w-4 text-center"></i>
+                                <a href="mailto:support@urbandrive.co.ke" class="hover:text-emerald-600 hover:underline">support@urbandrive.co.ke</a>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i class="fa-solid fa-phone text-gray-400 w-4 text-center"></i>
+                                <span>+254 (0) 700 000 000</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="pt-4 border-t border-gray-100 mt-4 text-xs text-gray-400 flex justify-between items-center">
+                        <span>© 2026 URBANDRIVE KENYA</span>
+                        <span class="bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded-md">v2.4.0</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Persistent Loader Hook
+        function includeSidebar() {
+            fetch('sidebar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('sidebar-placeholder').innerHTML = data;
+                    const dashLink = document.getElementById('nav-dashboard');
+                    if (dashLink) dashLink.classList.add('nav-active');
+                })
+                .catch(err => {
+                    console.error("Sidebar loading failed:", err);
+                    document.getElementById('sidebar-placeholder').innerHTML = 
+                        `<div class="w-64 bg-red-900 p-6 text-white">Error loading sidebar</div>`;
+                });
+        }
+
+        // Fetch user data metrics from system storage or backend endpoints
+        async function fetchUserDashboardMetrics() {
+            try {
+                const userEmail = localStorage.getItem('email') || "user@urbandrive.co.ke";
+                
+                // Fetch the total reports count for this specific user
+                const response = await fetch(`http://127.0.0.1:5000/admin/all-reports`);
+                if(response.ok) {
+                    const reports = await response.json();
+                    // Filter reports created by this user context email address
+                    const filteredReports = reports.filter(r => r.user.toLowerCase() === userEmail.toLowerCase() || r.user.toLowerCase() === userEmail.split('@')[0].toLowerCase());
+                    document.getElementById('userReportsCount').textContent = filteredReports.length || 0;
+                }
+            } catch(e) {
+                console.error("Could not trace metrics database connection:", e);
+                // Fallback to local fallback storage safe check block if server down
+                document.getElementById('userReportsCount').textContent = localStorage.getItem('reports_count') || "0";
+            }
+        }
+
+        // Load User Profile Name Details
+        function loadUserProfile() {
+            const userEmail = localStorage.getItem('email') || "user@urbandrive.co.ke";
+            const displayName = userEmail.split('@')[0].charAt(0).toUpperCase() + userEmail.split('@')[0].slice(1);
+            
+            document.getElementById('userName').textContent = displayName;
+            document.getElementById('welcomeName').textContent = displayName;
+            document.getElementById('userAvatar').textContent = displayName.charAt(0);
+        }
+
+        // Extract credentials from document keys if available
+        function getInlineKeyByName(name) {
+            const el = document.querySelector(`[data-type="api_key"][data-name="${name}"]`);
+            return el ? el.textContent.trim() : '';
+        }
+
+        // Dynamic Dashboard News Feeds Synchronizer Engine
+        async function loadDashboardNewsFeeds() {
+            const container = document.getElementById('dashboard-news-loader');
+            
+            const currentsKey = getInlineKeyByName('Currents API Key') || 'g7bEAFPzP_L_wc09t915mKqBUZdU3qKZpuFtHQCfNtTTHcJC';
+            const worldKey = getInlineKeyByName('World News API Key') || 'd2c53b6083c24e15abe375b93dc1db29';
+            
+            const urlCurrents = `https://api.currentsapi.services/v1/search?keywords=real+estate+OR+construction+OR+housing+OR+building&country=ke&apiKey=${currentsKey}`;
+            const urlWorld = `https://api.worldnewsapi.com/search-news?text=real+estate+OR+construction+OR+housing+OR+building&source-country=ke&language=en&number=3&api-key=${worldKey}`;
+            
+            try {
+                let currentsNews = [];
+                let worldNews = [];
+                
+                // Fetch from Currents
+                try {
+                    const res = await fetch(urlCurrents);
+                    const data = await res.json();
+                    currentsNews = data.news || [];
+                } catch(err) { console.error("Currents failed context:", err); }
+                
+                // Fetch from World News
+                try {
+                    const res = await fetch(urlWorld);
+                    const data = await res.json();
+                    worldNews = data.news || [];
+                } catch(err) { console.error("WorldNews failed context:", err); }
+                
+                let combined = [...currentsNews, ...worldNews];
+                // Strip items missing clear reference paths
+                combined = combined.filter((v, i, a) => a.findIndex(t => t.title === v.title) === i);
+                
+                if(combined.length === 0) {
+                    container.innerHTML = `<div class="text-center py-8 text-gray-400 text-sm">No recent marketplace real estate updates tracked today.</div>`;
+                    return;
+                }
+                
+                // Inject top 2 items for micro dashboard visualization spacing
+                container.innerHTML = '';
+                combined.slice(0, 2).forEach(article => {
+                    const dateStr = article.published || article.publishedAt ? new Date(article.published || article.publishedAt).toLocaleDateString('en-GB') : 'Recent';
+                    const el = `
+                        <div class="dash-news-card p-4 rounded-2xl border border-gray-100 hover:border-emerald-200 bg-gray-50 flex flex-col md:flex-row gap-4">
+                            <img src="${article.image || article.urlToImage || 'https://via.placeholder.com/150?text=Property'}" class="w-full md:w-28 h-20 object-cover rounded-xl bg-gray-200">
+                            <div class="flex-1 flex flex-col justify-between">
+                                <div>
+                                    <h4 class="font-bold text-sm text-gray-900 line-clamp-1 mb-1">${article.title}</h4>
+                                    <p class="text-xs text-gray-500 line-clamp-2">${article.description || 'No description summary details loaded.'}</p>
+                                </div>
+                                <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-200/60">
+                                    <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">KENYA PROPERTY</span>
+                                    <span class="text-[11px] text-gray-400">${dateStr}</span>
+                                    <a href="${article.url}" target="_blank" class="text-xs text-emerald-600 hover:underline font-medium">Read Article <i class="fa-solid fa-square-arrow-up-right text-[10px]"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += el;
+                });
+                
+            } catch(error) {
+                console.error(error);
+                container.innerHTML = `<div class="text-center py-8 text-sm text-red-500">Could not populate live property bulletins.</div>`;
+            }
+        }
+
+        // Logout
+        function logout() {
+            if (confirm("Are you sure you want to log out?")) {
+                localStorage.clear();
+                window.location.href = "login.html";
+            }
+        }
+
+        // Start New Analysis Stream Window 
+        function startNewAnalysis() {
+            window.open("http://localhost:8501", "_blank");
+        }
+
+        // Run primary components initializations
+        window.onload = function() {
+            includeSidebar();
+            loadUserProfile();
+            fetchUserDashboardMetrics();
+            loadDashboardNewsFeeds();
+        };
+    </script>
+</body>
+</html>
